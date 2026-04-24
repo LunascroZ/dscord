@@ -1,18 +1,15 @@
-defmodule Dscord do
-  @moduledoc """
-  Documentation for `Dscord`.
-  """
+defmodule MiniDiscord do
+  use Application
 
-  @doc """
-  Hello world.
+  def start(_type, _args) do
+    children = [
+      {Registry, keys: :unique, name: MiniDiscord.Registry},
+      {DynamicSupervisor, strategy: :one_for_one, name: MiniDiscord.SalonSupervisor},
+      MiniDiscord.ChatServer,
+      {Task.Supervisor, name: MiniDiscord.TaskSupervisor}
+    ]
 
-  ## Examples
-
-      iex> Dscord.hello()
-      :world
-
-  """
-  def hello do
-    :world
+    opts = [strategy: :one_for_one, name: MiniDiscord.Supervisor]
+    Supervisor.start_link(children, opts)
   end
 end
