@@ -2,7 +2,7 @@ defmodule Dscord.Salon do
   use GenServer
 
   def start_link(name) do
-    GenServer.start_link(__MODULE__, %{name: name, clients: [], historique: []},
+    GenServer.start_link(__MODULE__, %{name: name, clients: [], historique: [], password: nil},
       name: via(name))
   end
 
@@ -29,6 +29,20 @@ defmodule Dscord.Salon do
   {:reply, :ok,new_state}
   end
 
+  def handle_call({:set_password, pass}, _from, state) do
+  {:reply, :ok, %{state | password: pass}}
+end
+
+  def handle_call({:check_password, pass_tente}, _from, state) do
+  reponse = cond do
+    state.password == nil -> :ok
+    state.password == pass_tente -> :ok
+    true -> :error
+  end
+  {:reply, reponse, state}
+  end
+
+  
   def handle_cast({:broadcast, msg}, state) do
   Enum.each(state.clients, fn client_pid -> send(client_pid, {:message, msg}) end)
   new_historique = [msg | state.historique] |> Enum.take(10)
@@ -41,6 +55,11 @@ defmodule Dscord.Salon do
   end
 
   defp via(name), do: {:via, Registry, {Dscord.Registry, name}}
+
+  def proteger(salon, password), do: GenServer.call(via(salon), {:set_password, password})
+  def verifier_password(salon, password), do: GenServer.call(via(salon), {:check_password, password})
+
+
 
 
 end
