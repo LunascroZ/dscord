@@ -1,15 +1,15 @@
-defmodule MiniDiscord do
+defmodule Dscord do
   use Application
 
   def start(_type, _args) do
     children = [
-      {Registry, keys: :unique, name: MiniDiscord.Registry},
-      {DynamicSupervisor, strategy: :one_for_one, name: MiniDiscord.SalonSupervisor},
-      MiniDiscord.ChatServer,
-      {Task.Supervisor, name: MiniDiscord.TaskSupervisor}
+      {Registry, keys: :unique, name: Dscord.Registry},
+      {DynamicSupervisor, strategy: :one_for_one, name: Dscord.SalonSupervisor},
+      Dscord.ChatServer,
+      {Task.Supervisor, name: Dscord.TaskSupervisor}
     ]
 
-    opts = [strategy: :one_for_one, name: MiniDiscord.Supervisor]
+    opts = [strategy: :one_for_one, name: Dscord.Supervisor]
     Supervisor.start_link(children, opts)
   end
 end

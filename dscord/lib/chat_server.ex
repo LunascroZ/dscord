@@ -1,4 +1,4 @@
-defmodule MiniDiscord.ChatServer do
+defmodule Dscord.ChatServer do
   use GenServer
   require Logger
 
@@ -21,8 +21,8 @@ defmodule MiniDiscord.ChatServer do
   def handle_info(:accept, %{listen_socket: ls} = state) do
     {:ok, client_socket} = :gen_tcp.accept(ls)
     Task.Supervisor.start_child(
-      MiniDiscord.TaskSupervisor,
-      fn -> MiniDiscord.ClientHandler.start(client_socket) end
+      Dscord.TaskSupervisor,
+      fn -> Dscord.ClientHandler.start(client_socket) end
     )
     send(self(), :accept)
     {:noreply, state}

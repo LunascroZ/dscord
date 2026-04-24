@@ -1,8 +1,8 @@
-defmodule MiniDiscord.ClientHandler do
+defmodule Dscord.ClientHandler do
   require Logger
 
   def start(socket) do
-    :gen_tcp.send(socket, "Bienvenue sur MiniDiscord!\r\n")
+    :gen_tcp.send(socket, "Bienvenue sur Dscord!\r\n")
     :gen_tcp.send(socket, "Entre ton pseudo : ")
     {:ok, pseudo} = :gen_tcp.recv(socket, 0)
     pseudo = String.trim(pseudo)
@@ -16,16 +16,16 @@ defmodule MiniDiscord.ClientHandler do
   end
 
   defp rejoindre_salon(socket, pseudo, salon) do
-    case Registry.lookup(MiniDiscord.Registry, salon) do
+    case Registry.lookup(Dscord.Registry, salon) do
       [] ->
         DynamicSupervisor.start_child(
-          MiniDiscord.SalonSupervisor,
-          {MiniDiscord.Salon, salon})
+          Dscord.SalonSupervisor,
+          {Dscord.Salon, salon})
       _ -> :ok
     end
 
-    MiniDiscord.Salon.rejoindre(salon, self())
-    MiniDiscord.Salon.broadcast(salon, "📢 #{pseudo} a rejoint ##{salon}\r\n")
+    Dscord.Salon.rejoindre(salon, self())
+    Dscord.Salon.broadcast(salon, "📢 #{pseudo} a rejoint ##{salon}\r\n")
     :gen_tcp.send(socket, "Tu es dans ##{salon} — écris tes messages !\r\n")
 
     loop(socket, pseudo, salon)
@@ -41,7 +41,7 @@ defmodule MiniDiscord.ClientHandler do
     case :gen_tcp.recv(socket, 0, 100) do
       {:ok, msg} ->
         msg = String.trim(msg)
-        MiniDiscord.Salon.broadcast(salon, "[#{pseudo}] #{msg}\r\n")
+        Dscord.Salon.broadcast(salon, "[#{pseudo}] #{msg}\r\n")
         loop(socket, pseudo, salon)
 
       {:error, :timeout} ->
@@ -49,13 +49,13 @@ defmodule MiniDiscord.ClientHandler do
 
       {:error, reason} ->
         Logger.info("Client déconnecté : #{inspect(reason)}")
-        MiniDiscord.Salon.broadcast(salon, "👋 #{pseudo} a quitté ##{salon}\r\n")
-        MiniDiscord.Salon.quitter(salon, self())
+        Dscord.Salon.broadcast(salon, "👋 #{pseudo} a quitté ##{salon}\r\n")
+        Dscord.Salon.quitter(salon, self())
     end
   end
 
   defp salons_dispo do
-    case MiniDiscord.Salon.lister() do
+    case Dscord.Salon.lister() do
       [] -> "aucun (tu seras le premier !)"
       salons -> Enum.join(salons, ", ")
     end
